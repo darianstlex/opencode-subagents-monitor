@@ -41,7 +41,7 @@
   ],
   "publishConfig": {
     "access": "public",
-    "provenance": true
+    "provenance": false
   },
   "scripts": {
     "test": "bun test",

@@ -1,7 +1,7 @@
 {
   "name": "opencode-subagents-monitor",
-  "version": "0.1.2",
-  "description": "OpenCode TUI plugin that shows the number of running subagents in the sidebar footer",
+  "version": "0.2.0",
+  "description": "OpenCode TUI plugin that shows the number of running subagents in the sidebar footer, with optional detailed list view",
   "type": "module",
   "license": "MIT",
   "author": "darianstlex",

@@ -4,7 +4,7 @@
 [![npm downloads](https://img.shields.io/npm/dm/opencode-subagents-monitor.svg)](https://www.npmjs.com/package/opencode-subagents-monitor)
 [![license](https://img.shields.io/npm/l/opencode-subagents-monitor.svg)](./LICENSE)
 
-OpenCode TUI plugin that shows the number of running subagents in the sidebar footer.
+OpenCode TUI plugin that shows the number of running subagents in the sidebar footer, with an optional detailed subagent list view.
 
 ## Install
 
@@ -30,6 +30,27 @@ Add to your project `tui.json`, or your global `~/.config/opencode/tui.json` to 
   "plugin": ["opencode-subagents-monitor"]
 }
 ```
+
+### Configuration
+
+The plugin supports optional configuration via the `plugin` array:
+
+```json
+{
+  "$schema": "https://opencode.ai/tui.json",
+  "plugin": [
+    ["opencode-subagents-monitor", {
+      "showSubagentList": true,
+      "maxItems": 5
+    }]
+  ]
+}
+```
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `showSubagentList` | `boolean` | `false` | Show detailed subagent list in sidebar |
+| `maxItems` | `number` | `5` | Maximum number of subagents to display before truncating |
 
 Restart OpenCode after editing the file.
 

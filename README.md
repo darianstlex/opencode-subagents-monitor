@@ -49,9 +49,9 @@ The number counts active subagents, covering both direct child sessions and back
 ## Development
 
 ```bash
-bun install
-bun test          # unit tests
-bun run typecheck # tsc --noEmit
+npm install
+npm test          # unit tests (vitest)
+npm run typecheck # tsc --noEmit
 ```
 
 The plugin ships as raw TypeScript source — OpenCode loads `src/index.tsx`

@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test"
+import { describe, it, expect } from "vitest"
 import { selectDirectChildren, selectBackgroundJobs } from "../src/filters"
 import type { TaskPart, SessionStatus, BackgroundJob } from "../src/filters"
 

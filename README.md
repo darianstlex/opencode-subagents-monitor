@@ -46,6 +46,16 @@ The plugin replaces the sidebar footer, appending a running-subagent count on th
 
 The number counts active subagents, covering both direct child sessions and background-mode tasks (`task` tool with `background: true`). With none running it shows `[··]`.
 
+### Details modal
+
+Click the `[••]` indicator while agents are running to open a modal showing:
+
+- Agent type (explore, librarian, oracle, etc.)
+- Task description
+- Live runtime counter
+
+The modal auto-closes when all agents finish. Press `Esc` to dismiss manually.
+
 ## Development
 
 ```bash

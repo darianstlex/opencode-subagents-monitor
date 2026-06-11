@@ -1,9 +1,10 @@
 /** @jsxImportSource @opentui/solid */
 import type { TuiPluginApi } from "@opencode-ai/plugin/tui"
-import { createMemo, createSignal, onCleanup } from "solid-js"
+import { createMemo, createSignal, createEffect, onCleanup } from "solid-js"
 import { homedir } from "node:os"
-import { selectDirectChildren, selectBackgroundJobs } from "../filters"
-import type { TaskPart, SessionStatus, BackgroundJob } from "../filters"
+import { selectDirectChildren, selectBackgroundJobs, selectDirectChildrenRich, selectBackgroundJobsRich } from "../filters"
+import type { TaskPart, SessionStatus, BackgroundJob, RunningTask } from "../filters"
+import { SubagentModal } from "./Modal"
 
 export function SidebarFooter(props: { api: TuiPluginApi; sessionId: string }) {
   const theme = () => props.api.theme.current
@@ -15,6 +16,7 @@ export function SidebarFooter(props: { api: TuiPluginApi; sessionId: string }) {
   const childStatus = (id: string) => props.api.state.session.status(id) as SessionStatus | undefined
 
   const [bgJobs, setBgJobs] = createSignal<BackgroundJob[]>([])
+  const [modalOpen, setModalOpen] = createSignal(false)
 
   const refresh = () => {
     const client = props.api.client as unknown as Record<string, unknown>
@@ -43,6 +45,37 @@ export function SidebarFooter(props: { api: TuiPluginApi; sessionId: string }) {
     return ids.size
   })
 
+  const runningTasks = createMemo((): RunningTask[] => {
+    const direct = selectDirectChildrenRich(messages(), partsFor, childStatus)
+    const bg = selectBackgroundJobsRich(bgJobs())
+    const seen = new Set<string>()
+    const all: RunningTask[] = []
+    for (const t of [...direct, ...bg]) {
+      if (!seen.has(t.id)) {
+        seen.add(t.id)
+        all.push(t)
+      }
+    }
+    return all
+  })
+
+  createEffect(() => {
+    if (runningCount() === 0 && modalOpen()) {
+      setModalOpen(false)
+      props.api.ui.dialog.clear()
+    }
+  })
+
+  const openModal = () => {
+    if (runningCount() === 0) return
+    setModalOpen(true)
+    props.api.ui.dialog.replace(
+      () => <SubagentModal api={props.api} tasks={runningTasks} />,
+      () => setModalOpen(false),
+    )
+    props.api.ui.dialog.setSize("large")
+  }
+
   const path = createMemo(() => {
     const session = props.api.state.session.get(props.sessionId)
     const dir = session?.directory || props.api.state.path.directory || process.cwd()
@@ -68,12 +101,14 @@ export function SidebarFooter(props: { api: TuiPluginApi; sessionId: string }) {
           </span>{" "}
           <span>{props.api.app.version}</span>
         </text>
-        <text fg={theme().textMuted}>
-          <span style={{ fg: theme().text }}>
-            {runningCount() || ''}
-          </span>{" "}
-          <span style={{ fg: theme().success }}><b>{runningCount() ? '[••]' : '[··]'}</b></span>
-        </text>
+        <box onMouseUp={openModal}>
+          <text fg={theme().textMuted}>
+            <span style={{ fg: theme().text }}>
+              {runningCount() || ''}
+            </span>{" "}
+            <span style={{ fg: theme().success }}><b>{runningCount() ? '[••]' : '[··]'}</b></span>
+          </text>
+        </box>
       </box>
     </box>
   )

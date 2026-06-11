@@ -20,8 +20,8 @@ if [[ "$BRANCH" != "main" ]]; then
 fi
 
 echo "==> Verifying"
-bun run typecheck
-bun test
+npm run typecheck
+npm test
 
 echo "==> Bumping version ($BUMP)"
 # npm version creates the commit and the vX.Y.Z tag.

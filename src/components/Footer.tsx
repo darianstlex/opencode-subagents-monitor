@@ -7,7 +7,7 @@ import type { TaskPart, SessionStatus, BackgroundJob, RunningTask } from "../fil
 import { SubagentModal } from "./Modal"
 
 export function SidebarFooter(props: { api: TuiPluginApi; sessionId: string }) {
-  const theme = () => props.api.theme.current
+  const theme = props.api.theme.current
 
   const messages = createMemo(
     () => [...(props.api.state.session.messages(props.sessionId) ?? [])] as Array<{ id: string; role: string }>,
@@ -90,23 +90,23 @@ export function SidebarFooter(props: { api: TuiPluginApi; sessionId: string }) {
   return (
     <box gap={1}>
       <text>
-        <span style={{ fg: theme().textMuted }}>{path().parent}/</span>
-        <span style={{ fg: theme().text }}>{path().name}</span>
+        <span style={{ fg: theme.textMuted }}>{path().parent}/</span>
+        <span style={{ fg: theme.text }}>{path().name}</span>
       </text>
       <box flexDirection="row" justifyContent="space-between">
-        <text fg={theme().textMuted}>
-          <span style={{ fg: theme().success }}>•</span> <b>Open</b>
-          <span style={{ fg: theme().text }}>
+        <text fg={theme.textMuted}>
+          <span style={{ fg: theme.success }}>•</span> <b>Open</b>
+          <span style={{ fg: theme.text }}>
             <b>Code</b>
           </span>{" "}
           <span>{props.api.app.version}</span>
         </text>
         <box onMouseUp={openModal}>
-          <text fg={theme().textMuted}>
-            <span style={{ fg: theme().text }}>
+          <text fg={theme.textMuted}>
+            <span style={{ fg: theme.text }}>
               {runningCount() || ''}
             </span>{" "}
-            <span style={{ fg: theme().success }}><b>{runningCount() ? '[••]' : '[··]'}</b></span>
+            <span style={{ fg: theme.success }}><b>{runningCount() ? '[••]' : '[··]'}</b></span>
           </text>
         </box>
       </box>

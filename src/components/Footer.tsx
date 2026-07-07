@@ -9,6 +9,16 @@ import { SubagentModal } from "./Modal"
 export function SidebarFooter(props: { api: TuiPluginApi; sessionId: string }) {
   const theme = props.api.theme.current
 
+  const [tick, setTick] = createSignal(0)
+  const bump = () => setTick((t) => t + 1)
+
+  const unsub1 = props.api.event.on("session.status", bump)
+  const unsub2 = props.api.event.on("message.part.updated", bump)
+  onCleanup(() => {
+    unsub1()
+    unsub2()
+  })
+
   const messages = createMemo(
     () => [...(props.api.state.session.messages(props.sessionId) ?? [])] as Array<{ id: string; role: string }>,
   )
@@ -18,6 +28,7 @@ export function SidebarFooter(props: { api: TuiPluginApi; sessionId: string }) {
   const [modalOpen, setModalOpen] = createSignal(false)
 
   const runningCount = createMemo(() => {
+    tick()
     const ids = new Set([
       ...selectDirectChildren(messages(), partsFor, childStatus),
       ...selectBackgroundFromParts(messages(), partsFor),
@@ -26,6 +37,7 @@ export function SidebarFooter(props: { api: TuiPluginApi; sessionId: string }) {
   })
 
   const runningTasks = createMemo((): RunningTask[] => {
+    tick()
     const direct = selectDirectChildrenRich(messages(), partsFor, childStatus)
     const bg = selectBackgroundFromPartsRich(messages(), partsFor)
     const seen = new Set<string>()

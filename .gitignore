@@ -1,5 +1,6 @@
 node_modules/
 dist/
+src/tui-compiled/
 .idea/
 .DS_Store
 .worktrees

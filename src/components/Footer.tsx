@@ -2,8 +2,8 @@
 import type { TuiPluginApi } from "@opencode-ai/plugin/tui"
 import { createMemo, createSignal, createEffect, onCleanup } from "solid-js"
 import { homedir } from "node:os"
-import { selectDirectChildren, selectBackgroundJobs, selectDirectChildrenRich, selectBackgroundJobsRich } from "../filters"
-import type { TaskPart, SessionStatus, BackgroundJob, RunningTask } from "../filters"
+import { selectDirectChildren, selectDirectChildrenRich, selectBackgroundFromParts, selectBackgroundFromPartsRich } from "../filters"
+import type { TaskPart, SessionStatus, RunningTask } from "../filters"
 import { SubagentModal } from "./Modal"
 
 export function SidebarFooter(props: { api: TuiPluginApi; sessionId: string }) {
@@ -15,39 +15,19 @@ export function SidebarFooter(props: { api: TuiPluginApi; sessionId: string }) {
   const partsFor = (msgId: string) => [...props.api.state.part(msgId)] as Array<TaskPart>
   const childStatus = (id: string) => props.api.state.session.status(id) as SessionStatus | undefined
 
-  const [bgJobs, setBgJobs] = createSignal<BackgroundJob[]>([])
   const [modalOpen, setModalOpen] = createSignal(false)
 
-  const refresh = () => {
-    const client = props.api.client as unknown as Record<string, unknown>
-    const bg = client.background as Record<string, unknown> | undefined
-    const listFn = bg?.list ?? (client.session as Record<string, unknown> | undefined)?.background
-    if (typeof listFn === "function") {
-      Promise.resolve(listFn({ path: { sessionID: props.sessionId } }))
-        .then((res: unknown) => {
-          const jobs = (res as Record<string, unknown>)?.data ?? res
-          setBgJobs(Array.isArray(jobs) ? (jobs as BackgroundJob[]) : [])
-        })
-        .catch(() => setBgJobs([]))
-    }
-  }
-  refresh()
-
-  const unsub1 = props.api.event.on("session.status", refresh)
-  const unsub2 = props.api.event.on("message.part.updated", refresh)
-  onCleanup(() => {
-    unsub1()
-    unsub2()
-  })
-
   const runningCount = createMemo(() => {
-    const ids = new Set([...selectDirectChildren(messages(), partsFor, childStatus), ...selectBackgroundJobs(bgJobs())])
+    const ids = new Set([
+      ...selectDirectChildren(messages(), partsFor, childStatus),
+      ...selectBackgroundFromParts(messages(), partsFor),
+    ])
     return ids.size
   })
 
   const runningTasks = createMemo((): RunningTask[] => {
     const direct = selectDirectChildrenRich(messages(), partsFor, childStatus)
-    const bg = selectBackgroundJobsRich(bgJobs())
+    const bg = selectBackgroundFromPartsRich(messages(), partsFor)
     const seen = new Set<string>()
     const all: RunningTask[] = []
     for (const t of [...direct, ...bg]) {

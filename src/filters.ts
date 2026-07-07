@@ -6,7 +6,7 @@ export interface TaskPart {
     status: "running" | "completed" | "error"
     input: { background?: boolean; description?: string; subagent_type?: string; category?: string }
     title?: string
-    metadata?: { sessionId?: string }
+    metadata?: { sessionId?: string; background?: boolean }
     time?: { start: number }
   }
 }
@@ -34,7 +34,7 @@ export function selectDirectChildren(
 
     for (const part of getParts(msg.id)) {
       if (part.type !== "tool" || part.tool !== "task") continue
-      if (part.state.input.background === true) continue
+      if (part.state.input.background === true || part.state.metadata?.background === true) continue
 
       const { status, metadata } = part.state
       if (status === "running") {
@@ -61,7 +61,7 @@ export function selectDirectChildrenRich(
 
     for (const part of getParts(msg.id)) {
       if (part.type !== "tool" || part.tool !== "task") continue
-      if (part.state.input.background === true) continue
+      if (part.state.input.background === true || part.state.metadata?.background === true) continue
 
       const { status, metadata, input, title, time } = part.state
       let active = false
@@ -118,6 +118,52 @@ export function selectBackgroundJobsRich(jobs: BackgroundJob[]): RunningTask[] {
       title: job.description || job.input?.description || "Running...",
       startTime: job.startTime || Date.now(),
     })
+  }
+
+  return tasks
+}
+
+export function selectBackgroundFromParts(
+  messages: Array<{ id: string; role: string }>,
+  getParts: (msgId: string) => Array<TaskPart>,
+): string[] {
+  const ids: string[] = []
+
+  for (const msg of messages) {
+    if (msg.role !== "assistant") continue
+
+    for (const part of getParts(msg.id)) {
+      if (part.type !== "tool" || part.tool !== "task") continue
+      if (part.state.input.background !== true && part.state.metadata?.background !== true) continue
+      if (part.state.status === "running") ids.push(part.id)
+    }
+  }
+
+  return ids
+}
+
+export function selectBackgroundFromPartsRich(
+  messages: Array<{ id: string; role: string }>,
+  getParts: (msgId: string) => Array<TaskPart>,
+): RunningTask[] {
+  const tasks: RunningTask[] = []
+
+  for (const msg of messages) {
+    if (msg.role !== "assistant") continue
+
+    for (const part of getParts(msg.id)) {
+      if (part.type !== "tool" || part.tool !== "task") continue
+      if (part.state.input.background !== true && part.state.metadata?.background !== true) continue
+      if (part.state.status !== "running") continue
+
+      const { input, title, time } = part.state
+      tasks.push({
+        id: part.id,
+        name: input.subagent_type || input.category || "background",
+        title: title || input.description || "Running...",
+        startTime: time?.start || Date.now(),
+      })
+    }
   }
 
   return tasks
